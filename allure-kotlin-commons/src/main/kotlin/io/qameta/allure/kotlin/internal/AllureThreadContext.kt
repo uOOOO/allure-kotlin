@@ -22,6 +22,12 @@ class AllureThreadContext {
         get() = context.get().lastOrNull()
 
     /**
+     * Returns storage size
+     */
+    val size: Int
+        get() = context.get().size
+
+    /**
      * Adds new uuid.
      */
     fun start(uuid: String) {

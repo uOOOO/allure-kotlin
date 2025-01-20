@@ -13,14 +13,17 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedDeque
 import java.util.logging.Logger
 
 open class AllureLifecycle @JvmOverloads constructor(
     private val writer: AllureResultsWriter = getDefaultWriter(),
-    private val notifier: LifecycleNotifier = getDefaultNotifier()
+    private val notifier: LifecycleNotifier = getDefaultNotifier(),
+    private val isRobolectricTest: Boolean = false
 ) {
     private val storage: AllureStorage = AllureStorage()
     private val threadContext: AllureThreadContext = AllureThreadContext()
+    private val testCaseIds: ConcurrentLinkedDeque<String> = ConcurrentLinkedDeque()
 
     /**
      * Starts test container with specified parent container.
@@ -264,6 +267,7 @@ open class AllureLifecycle @JvmOverloads constructor(
             stage = Stage.RUNNING
             start = System.currentTimeMillis()
         }
+        testCaseIds.push(uuid)
         threadContext.start(uuid)
         notifier.afterTestStart(testResult)
     }
@@ -313,6 +317,7 @@ open class AllureLifecycle @JvmOverloads constructor(
             stage = Stage.FINISHED
             stop = System.currentTimeMillis()
         }
+        testCaseIds.pop()
         threadContext.clear()
         notifier.afterTestStop(testResult)
     }
@@ -332,6 +337,17 @@ open class AllureLifecycle @JvmOverloads constructor(
         notifier.afterTestWrite(testResult)
     }
 
+    private fun getParentUuid(): String? {
+        return if (isRobolectricTest &&
+            threadContext.root == threadContext.current &&
+            threadContext.current != testCaseIds.peek()
+        ) {
+            testCaseIds.peek()
+        } else {
+            threadContext.current
+        }
+    }
+
     /**
      * Start a new step as child step of current running test case or step. Shortcut
      * for [.startStep].
@@ -340,7 +356,7 @@ open class AllureLifecycle @JvmOverloads constructor(
      * @param result the step.
      */
     fun startStep(uuid: String, result: StepResult) {
-        val parentUuid = threadContext.current ?: return Unit.also {
+        val parentUuid = getParentUuid() ?: return Unit.also {
             LOGGER.error("Could not start step: no test case running")
         }
         startStep(parentUuid, uuid, result)
@@ -471,7 +487,7 @@ open class AllureLifecycle @JvmOverloads constructor(
             ?: ""
         val source =
             UUID.randomUUID().toString() + AllureConstants.ATTACHMENT_FILE_SUFFIX + extension
-        val uuid = threadContext.current ?: return source.also {
+        val uuid = getParentUuid() ?: return source.also {
             LOGGER.error("Could not add attachment: no test is running")
         }
         val attachment = Attachment(

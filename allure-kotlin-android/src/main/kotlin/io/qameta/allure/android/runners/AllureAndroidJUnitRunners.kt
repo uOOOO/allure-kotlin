@@ -9,6 +9,7 @@ import io.qameta.allure.android.internal.isDeviceTest
 import io.qameta.allure.android.listeners.ExternalStoragePermissionsListener
 import io.qameta.allure.android.writer.TestStorageResultsWriter
 import io.qameta.allure.kotlin.Allure
+import io.qameta.allure.kotlin.AllureLifecycle
 import io.qameta.allure.kotlin.junit4.AllureJunit4
 import io.qameta.allure.kotlin.util.PropertiesUtils
 import org.junit.runner.*
@@ -61,7 +62,15 @@ open class AllureAndroidJUnit4(clazz: Class<*>) : Runner(), Filterable, Sortable
      *
      * The listeners are not shared between class runners, hence they have to be added to each class runner separately.
      */
-    private fun createRobolectricListener(): RunListener? = AllureJunit4()
+    private fun createRobolectricListener(): RunListener {
+        val lifecycle = createAllureLifecycle(true)
+        Allure.lifecycle = lifecycle
+        return AllureJunit4(lifecycle)
+    }
+
+    protected open fun createAllureLifecycle(
+        @Suppress("SameParameterValue") isRobolectricTest: Boolean
+    ): AllureLifecycle = createDefaultAllureLifecycle(isRobolectricTest)
 
     override fun getDescription(): Description = delegate.description
 
@@ -108,6 +117,10 @@ private fun createDefaultAllureAndroidLifecycle() : AllureAndroidLifecycle {
     }
 
     return AllureAndroidLifecycle()
+}
+
+private fun createDefaultAllureLifecycle(isRobolectricTest: Boolean): AllureLifecycle {
+    return AllureLifecycle(isRobolectricTest = isRobolectricTest)
 }
 
 private val useTestStorage: Boolean

@@ -17,7 +17,7 @@ object Versions {
 
         const val compileSdk = 30
         const val targetSdk = 30
-        const val minSdk = 18
+        const val minSdk = 21
 
         const val androidXappcompat = "1.2.0"
         const val androidXcore = "1.3.2"
