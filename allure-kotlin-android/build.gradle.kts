@@ -14,8 +14,6 @@ android {
     defaultConfig {
         minSdkVersion(Versions.Android.minSdk)
         targetSdkVersion(Versions.Android.targetSdk)
-        versionCode = 1
-        versionName = version as String
 
         consumerProguardFiles("consumer-rules.pro")
     }

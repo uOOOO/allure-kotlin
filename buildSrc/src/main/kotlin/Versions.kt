@@ -1,5 +1,5 @@
 object Versions {
-    const val kotlin = "1.5.0"
+    const val kotlin = "1.7.21"
     const val kotlinxSerialization = "1.2.1"
 
     const val junit4 = "4.13.2"
@@ -13,7 +13,7 @@ object Versions {
     const val randomBeans = "3.9.0"
 
     object Android {
-        const val gradlePlugin = "4.2.1"
+        const val gradlePlugin = "7.4.2"
 
         const val compileSdk = 30
         const val targetSdk = 30
@@ -28,7 +28,7 @@ object Versions {
             const val runner = "1.4.0"
             const val junit = "1.1.2"
             const val espresso = "3.3.0"
-            const val robolectric = "4.3.1"
+            const val robolectric = "4.14.1"
             const val uiAutomator = "2.2.0"
         }
     }
