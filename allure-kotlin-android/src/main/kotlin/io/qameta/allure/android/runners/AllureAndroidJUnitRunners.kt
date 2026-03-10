@@ -14,13 +14,25 @@ import io.qameta.allure.kotlin.util.PropertiesUtils
 import org.junit.runner.*
 import org.junit.runner.manipulation.*
 import org.junit.runner.notification.*
+import org.junit.runners.model.FrameworkMethod
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.internal.bytecode.InstrumentationConfiguration
 
 /**
- * Wrapper over [AndroidJUnit4] that attaches the [AllureJunit4] listener
+ * Wrapper that attaches the [AllureJunit4] listener.
+ *
+ * For device tests, delegates to [AndroidJUnit4].
+ * For Robolectric tests, delegates to [AllureRobolectricRunner] which excludes allure
+ * packages from Robolectric's SandboxClassLoader so that the test code and the listener
+ * share the same [Allure] singleton.
  */
 open class AllureAndroidJUnit4(clazz: Class<*>) : Runner(), Filterable, Sortable {
 
-    private val delegate = AndroidJUnit4(clazz)
+    private val delegate: Runner = if (isDeviceTest()) {
+        AndroidJUnit4(clazz)
+    } else {
+        AllureRobolectricRunner(clazz)
+    }
 
     override fun run(notifier: RunNotifier?) {
         createListener()?.let {
@@ -65,9 +77,9 @@ open class AllureAndroidJUnit4(clazz: Class<*>) : Runner(), Filterable, Sortable
 
     override fun getDescription(): Description = delegate.description
 
-    override fun filter(filter: Filter?) = delegate.filter(filter)
+    override fun filter(filter: Filter?) = (delegate as Filterable).filter(filter)
 
-    override fun sort(sorter: Sorter?) = delegate.sort(sorter)
+    override fun sort(sorter: Sorter?) = (delegate as Sortable).sort(sorter)
 }
 
 /**
@@ -114,4 +126,26 @@ private val useTestStorage: Boolean
     get() = PropertiesUtils.loadAllureProperties()
         .getProperty("allure.results.useTestStorage", "false")
         .toBoolean()
+
+/**
+ * Custom [RobolectricTestRunner] that excludes allure packages from Robolectric's
+ * SandboxClassLoader.
+ *
+ * By default, Robolectric loads all non-system classes via its SandboxClassLoader,
+ * creating separate class instances from the system ClassLoader. This causes the
+ * [Allure] singleton in the test code to be a different instance from the one used
+ * by the JUnit listener, so steps and attachments are not recorded.
+ *
+ * [doNotAcquirePackage][InstrumentationConfiguration.Builder] tells the
+ * SandboxClassLoader to delegate allure classes to the parent (system) ClassLoader,
+ * ensuring a single shared [Allure] instance.
+ */
+private open class AllureRobolectricRunner(clazz: Class<*>) : RobolectricTestRunner(clazz) {
+
+    override fun createClassLoaderConfig(method: FrameworkMethod): InstrumentationConfiguration {
+        return InstrumentationConfiguration.Builder(super.createClassLoaderConfig(method))
+            .doNotAcquirePackage("io.qameta.allure")
+            .build()
+    }
+}
 
