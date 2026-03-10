@@ -28,5 +28,5 @@ internal val uiDevice: UiDevice?
 
 internal fun createTemporaryFile(prefix: String = "temp", suffix: String? = null): File {
     val cacheDir = InstrumentationRegistry.getInstrumentation().targetContext.cacheDir
-    return createTempFile(prefix, suffix, cacheDir)
+    return File.createTempFile(prefix, suffix, cacheDir)
 }
