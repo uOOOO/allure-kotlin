@@ -255,7 +255,6 @@ open class AllureLifecycle @JvmOverloads constructor(
      * @param uuid the uuid of test case to start.
      */
     fun startTestCase(uuid: String) {
-        threadContext.clear()
         val testResult = storage.getTestResult(uuid) ?: return Unit.also {
             LOGGER.error("Could not start test case: test case with uuid $uuid is not scheduled")
         }
@@ -264,7 +263,7 @@ open class AllureLifecycle @JvmOverloads constructor(
             stage = Stage.RUNNING
             start = System.currentTimeMillis()
         }
-        threadContext.start(uuid)
+        threadContext.startRoot(uuid)
         notifier.afterTestStart(testResult)
     }
 
@@ -313,7 +312,7 @@ open class AllureLifecycle @JvmOverloads constructor(
             stage = Stage.FINISHED
             stop = System.currentTimeMillis()
         }
-        threadContext.clear()
+        threadContext.stopRoot(uuid)
         notifier.afterTestStop(testResult)
     }
 
