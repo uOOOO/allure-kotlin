@@ -19,8 +19,8 @@ object Versions {
         const val targetSdk = 31
         const val minSdk = 21
 
-        const val androidXappcompat = "1.7.1"
-        const val androidXcore = "1.17.0"
+        const val androidXappcompat = "1.4.2"
+        const val androidXcore = "1.8.0"
         const val multiDex = "2.0.1"
 
         object Test {
