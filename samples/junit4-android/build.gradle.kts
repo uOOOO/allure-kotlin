@@ -2,20 +2,20 @@ description = "Allure Kotlin Android Samples"
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
 }
 
 android {
-    compileSdkVersion(Versions.Android.compileSdk)
+    namespace = "io.qameta.allure.sample.junit4.android"
+    compileSdk = Versions.Android.compileSdk
     defaultConfig {
         applicationId = "io.qameta.allure.sample.junit4.android"
-        minSdkVersion(Versions.Android.minSdk)
-        targetSdkVersion(Versions.Android.targetSdk)
+        minSdk = Versions.Android.minSdk
+        targetSdk = Versions.Android.targetSdk
         versionCode = 1
         versionName = version as String
 
         testInstrumentationRunner = "io.qameta.allure.android.runners.AllureAndroidJUnitRunner"
-        testInstrumentationRunnerArguments(mapOf("clearPackageData" to "true"))
+        testInstrumentationRunnerArguments.putAll(mapOf("clearPackageData" to "true"))
     }
 
     buildTypes {
@@ -27,8 +27,8 @@ android {
 
     sourceSets {
         val sharedTestDir = "src/sharedTest/java"
-        getByName("test").java.srcDir(sharedTestDir)
-        getByName("androidTest").java.srcDir(sharedTestDir)
+        getByName("test").java.directories.add(sharedTestDir)
+        getByName("androidTest").java.directories.add(sharedTestDir)
     }
 
     testOptions.unitTests.isIncludeAndroidResources = true
@@ -53,4 +53,8 @@ dependencies {
 
     testImplementation("org.robolectric:robolectric:${Versions.Android.Test.robolectric}")
     androidTestUtil("androidx.test:orchestrator:${Versions.Android.Test.orchestrator}")
+}
+
+tasks.withType<Test>() {
+    maxParallelForks = Runtime.getRuntime().availableProcessors()
 }

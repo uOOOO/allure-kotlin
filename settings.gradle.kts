@@ -1,3 +1,6 @@
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
 rootProject.name = "allure-kotlin"
 include("allure-kotlin-model")
 include("allure-kotlin-commons")

@@ -1,9 +1,12 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     java
     signing
     `maven-publish`
 
-    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
 
     kotlin("jvm") version Versions.kotlin
     kotlin("plugin.serialization") version Versions.kotlin
@@ -16,7 +19,6 @@ buildscript {
     }
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}")
-        classpath("org.jetbrains.kotlin:kotlin-android-extensions:${Versions.kotlin}")
         classpath("com.android.tools.build:gradle:${Versions.Android.gradlePlugin}")
     }
 }
@@ -38,9 +40,9 @@ allprojects {
         google()
     }
 
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = JavaVersion.VERSION_1_6.toString()
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
         }
     }
 }
@@ -57,9 +59,9 @@ configure(subprojects
         implementation(kotlin("stdlib"))
     }
 
-    configure<JavaPluginConvention> {
-        sourceCompatibility = JavaVersion.VERSION_1_6
-        targetCompatibility = JavaVersion.VERSION_1_6
+    configure<JavaPluginExtension> {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     tasks.jar {
@@ -71,12 +73,12 @@ configure(subprojects
         }
     }
 
-    val sourceJar by tasks.creating(Jar::class) {
+    val sourceJar by tasks.registering(Jar::class) {
         from(sourceSets.getByName("main").allSource)
         archiveClassifier.set("sources")
     }
 
-    val javadocJar by tasks.creating(Jar::class) {
+    val javadocJar by tasks.registering(Jar::class) {
         from(tasks.getByName("javadoc"))
         archiveClassifier.set("javadoc")
     }
