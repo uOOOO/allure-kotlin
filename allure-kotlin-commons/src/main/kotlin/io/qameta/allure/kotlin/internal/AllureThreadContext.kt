@@ -48,12 +48,6 @@ class AllureThreadContext {
         }
 
     /**
-     * Returns storage size
-     */
-    val size: Int
-        get() = context.get().size
-
-    /**
      * Registers a root context (test case) and initializes the thread-local stack.
      */
     fun startRoot(uuid: String) {
