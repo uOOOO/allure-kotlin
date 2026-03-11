@@ -27,11 +27,16 @@ android {
 
     sourceSets {
         val sharedTestDir = "src/sharedTest/java"
-        getByName("test").java.directories.add(sharedTestDir)
-        getByName("androidTest").java.directories.add(sharedTestDir)
+        getByName("test").kotlin.directories.add(sharedTestDir)
+        getByName("androidTest").kotlin.directories.add(sharedTestDir)
     }
 
-    testOptions.unitTests.isIncludeAndroidResources = true
+    testOptions{
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues= true
+        }
+    }
 }
 
 dependencies {

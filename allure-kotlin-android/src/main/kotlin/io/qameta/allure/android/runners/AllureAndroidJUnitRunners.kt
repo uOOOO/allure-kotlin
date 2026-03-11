@@ -22,9 +22,9 @@ import org.robolectric.internal.bytecode.InstrumentationConfiguration
  * Wrapper that attaches the [AllureJunit4] listener.
  *
  * For device tests, delegates to [AndroidJUnit4].
- * For Robolectric tests, delegates to [AllureRobolectricRunner] which excludes allure
- * packages from Robolectric's SandboxClassLoader so that the test code and the listener
- * share the same [Allure] singleton.
+ * For Robolectric tests, delegates to [AllureRobolectricRunner] which excludes core
+ * allure packages from Robolectric's SandboxClassLoader so that the test code and
+ * the listener share the same [Allure] singleton.
  */
 open class AllureAndroidJUnit4(clazz: Class<*>) : Runner(), Filterable, Sortable {
 
@@ -128,7 +128,7 @@ private val useTestStorage: Boolean
         .toBoolean()
 
 /**
- * Custom [RobolectricTestRunner] that excludes allure packages from Robolectric's
+ * Custom [RobolectricTestRunner] that excludes core allure packages from Robolectric's
  * SandboxClassLoader.
  *
  * By default, Robolectric loads all non-system classes via its SandboxClassLoader,
@@ -136,15 +136,17 @@ private val useTestStorage: Boolean
  * [Allure] singleton in the test code to be a different instance from the one used
  * by the JUnit listener, so steps and attachments are not recorded.
  *
- * [doNotAcquirePackage][InstrumentationConfiguration.Builder] tells the
- * SandboxClassLoader to delegate allure classes to the parent (system) ClassLoader,
- * ensuring a single shared [Allure] instance.
+ * Only `io.qameta.allure.kotlin` is excluded (not the entire `io.qameta.allure`
+ * package) because `io.qameta.allure.android` references `androidx.test` classes.
+ * Excluding it from the sandbox would cause `androidx.test` to be loaded by the
+ * parent ClassLoader, leading to classloader conflicts (e.g.
+ * [java.util.ServiceConfigurationError] with `ActivityInvoker`).
  */
 private open class AllureRobolectricRunner(clazz: Class<*>) : RobolectricTestRunner(clazz) {
 
     override fun createClassLoaderConfig(method: FrameworkMethod): InstrumentationConfiguration {
         return InstrumentationConfiguration.Builder(super.createClassLoaderConfig(method))
-            .doNotAcquirePackage("io.qameta.allure")
+            .doNotAcquirePackage("io.qameta.allure.kotlin")
             .build()
     }
 }
